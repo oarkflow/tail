@@ -293,6 +293,11 @@ func (tail *Tail) tailFileSync() {
 
 	tail.openReader()
 
+	if err := tail.watchChanges(); err != nil {
+		tail.Killf("Error watching for changes on %s: %s", tail.Filename, err)
+		return
+	}
+
 	// Read line by line.
 	for {
 		// do not seek in named pipes
@@ -368,19 +373,25 @@ func (tail *Tail) tailFileSync() {
 	}
 }
 
+// watchChanges ensures the watcher is running.
+func (tail *Tail) watchChanges() error {
+	if tail.changes != nil {
+		return nil
+	}
+	pos, err := tail.file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
+	tail.changes, err = tail.watcher.ChangeEvents(&tail.Tomb, pos)
+	return err
+}
+
 // waitForChanges waits until the file has been appended, deleted,
 // moved or truncated. When moved or deleted - the file will be
 // reopened if ReOpen is true. Truncated files are always reopened.
 func (tail *Tail) waitForChanges() error {
-	if tail.changes == nil {
-		pos, err := tail.file.Seek(0, io.SeekCurrent)
-		if err != nil {
-			return err
-		}
-		tail.changes, err = tail.watcher.ChangeEvents(&tail.Tomb, pos)
-		if err != nil {
-			return err
-		}
+	if err := tail.watchChanges(); err != nil {
+		return err
 	}
 
 	select {
