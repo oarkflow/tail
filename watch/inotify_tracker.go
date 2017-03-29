@@ -11,7 +11,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/nxadm/tail/util"
+	"github.com/influxdata/tail/util"
 
     "github.com/fsnotify/fsnotify"
 )

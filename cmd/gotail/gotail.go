@@ -9,7 +9,8 @@ import (
 	"fmt"
     "io"
 	"os"
-	"github.com/nxadm/tail"
+
+	"github.com/influxdata/tail"
 )
 
 func args2config() (tail.Config, int64) {
