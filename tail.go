@@ -378,9 +378,13 @@ func (tail *Tail) watchChanges() error {
 	if tail.changes != nil {
 		return nil
 	}
-	pos, err := tail.file.Seek(0, io.SeekCurrent)
-	if err != nil {
-		return err
+	var pos int64
+	var err error
+	if !tail.Pipe {
+		pos, err = tail.file.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return err
+		}
 	}
 	tail.changes, err = tail.watcher.ChangeEvents(&tail.Tomb, pos)
 	return err
