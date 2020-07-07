@@ -75,6 +75,7 @@ type Config struct {
 	MustExist bool      // Fail early if the file does not exist
 	Poll      bool      // Poll for file changes instead of using the default inotify
 	Pipe      bool      // The file is a named pipe (mkfifo)
+	OpenReaderFunc func(rd io.Reader) io.Reader
 
 	// Generic IO
 	Follow        bool // Continue looking for new lines (tail -f)
@@ -431,11 +432,16 @@ func (tail *Tail) waitForChanges() error {
 
 func (tail *Tail) openReader() {
 	tail.lk.Lock()
+	var rd io.Reader = tail.file
+	if tail.OpenReaderFunc != nil {
+		rd = tail.OpenReaderFunc(rd)
+	}
+
 	if tail.MaxLineSize > 0 {
 		// add 2 to account for newline characters
-		tail.reader = bufio.NewReaderSize(tail.file, tail.MaxLineSize+2)
+		tail.reader = bufio.NewReaderSize(rd, tail.MaxLineSize+2)
 	} else {
-		tail.reader = bufio.NewReader(tail.file)
+		tail.reader = bufio.NewReader(rd)
 	}
 	tail.lk.Unlock()
 }
