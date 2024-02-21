@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
-    "github.com/fsnotify/fsnotify"
+  "github.com/fsnotify/fsnotify"
 	"gopkg.in/tomb.v1"
 
 	"github.com/influxdata/tail/util"
