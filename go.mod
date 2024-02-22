@@ -1,4 +1,4 @@
-module github.com/influxdata/tail
+module github.com/dayvar14/tail
 
 go 1.13
 

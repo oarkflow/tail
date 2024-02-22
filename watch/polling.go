@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/tomb.v1"
 
-	"github.com/influxdata/tail/util"
+	"github.com/dayvar14/tail/util"
 )
 
 // PollingFileWatcher polls the file for changes.

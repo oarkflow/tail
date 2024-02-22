@@ -21,9 +21,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/influxdata/tail/ratelimiter"
-	"github.com/influxdata/tail/util"
-	"github.com/influxdata/tail/watch"
+	"github.com/dayvar14/tail/ratelimiter"
+	"github.com/dayvar14/tail/util"
+	"github.com/dayvar14/tail/watch"
 	"gopkg.in/tomb.v1"
 )
 

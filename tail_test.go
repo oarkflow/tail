@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/influxdata/tail/ratelimiter"
-	"github.com/influxdata/tail/watch"
+	"github.com/dayvar14/tail/ratelimiter"
+	"github.com/dayvar14/tail/watch"
 )
 
 func TestTailFile(t *testing.T) {

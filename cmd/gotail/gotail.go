@@ -10,7 +10,7 @@ import (
     "io"
 	"os"
 
-	"github.com/influxdata/tail"
+	"github.com/dayvar14/tail"
 )
 
 func args2config() (tail.Config, int64) {

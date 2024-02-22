@@ -6,7 +6,7 @@ package tail
 import (
 	"os"
 
-	"github.com/influxdata/tail/winfile"
+	"github.com/dayvar14/tail/winfile"
 )
 
 // Deprecated: this function is only useful internally and, as such,
