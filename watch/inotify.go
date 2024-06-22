@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
-  "github.com/fsnotify/fsnotify"
+	"github.com/fsnotify/fsnotify"
 	"gopkg.in/tomb.v1"
 
-	"github.com/dayvar14/tail/util"
+	"github.com/oarkflow/tail/util"
 )
 
 // InotifyFileWatcher uses inotify to monitor file changes.

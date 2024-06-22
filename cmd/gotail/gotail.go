@@ -7,16 +7,16 @@ package main
 import (
 	"flag"
 	"fmt"
-    "io"
+	"io"
 	"os"
 
-	"github.com/dayvar14/tail"
+	"github.com/oarkflow/tail"
 )
 
 func args2config() (tail.Config, int64) {
 	config := tail.Config{Follow: true}
 	n := int64(0)
-	maxlinesize := int(0)
+	maxlinesize := 0
 	flag.Int64Var(&n, "n", 0, "tail from the last Nth location")
 	flag.IntVar(&maxlinesize, "max", 0, "max line size")
 	flag.BoolVar(&config.Follow, "f", false, "wait for additional data to be appended to the file")
@@ -53,7 +53,7 @@ func main() {
 
 func tailFile(filename string, config tail.Config, done chan bool) {
 	defer func() { done <- true }()
-	t, err := tail.TailFile(filename, config)
+	t, err := tail.File(filename, config)
 	if err != nil {
 		fmt.Println(err)
 		return

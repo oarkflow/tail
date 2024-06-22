@@ -2,11 +2,11 @@
 // Copyright (c) 2015 HPE Software Inc. All rights reserved.
 // Copyright (c) 2013 ActiveState Software Inc. All rights reserved.
 
-//nxadm/tail provides a Go library that emulates the features of the BSD `tail`
-//program. The library comes with full support for truncation/move detection as
-//it is designed to work with log rotation tools. The library works on all
-//operating systems supported by Go, including POSIX systems like Linux and
-//*BSD, and MS Windows. Go 1.9 is the oldest compiler release supported.
+// nxadm/tail provides a Go library that emulates the features of the BSD `tail`
+// program. The library comes with full support for truncation/move detection as
+// it is designed to work with log rotation tools. The library works on all
+// operating systems supported by Go, including POSIX systems like Linux and
+// *BSD, and MS Windows. Go 1.9 is the oldest compiler release supported.
 package tail
 
 import (
@@ -17,14 +17,16 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/dayvar14/tail/ratelimiter"
-	"github.com/dayvar14/tail/util"
-	"github.com/dayvar14/tail/watch"
 	"gopkg.in/tomb.v1"
+
+	"github.com/oarkflow/tail/ratelimiter"
+	"github.com/oarkflow/tail/util"
+	"github.com/oarkflow/tail/watch"
 )
 
 var (
@@ -70,11 +72,11 @@ type logger interface {
 // Config is used to specify how a file must be tailed.
 type Config struct {
 	// File-specifc
-	Location  *SeekInfo // Tail from this location. If nil, start at the beginning of the file
-	ReOpen    bool      // Reopen recreated files (tail -F)
-	MustExist bool      // Fail early if the file does not exist
-	Poll      bool      // Poll for file changes instead of using the default inotify
-	Pipe      bool      // The file is a named pipe (mkfifo)
+	Location       *SeekInfo // Tail from this location. If nil, start at the beginning of the file
+	ReOpen         bool      // Reopen recreated files (tail -F)
+	MustExist      bool      // Fail early if the file does not exist
+	Poll           bool      // Poll for file changes instead of using the default inotify
+	Pipe           bool      // The file is a named pipe (mkfifo)
 	OpenReaderFunc func(rd io.Reader) io.Reader
 
 	// Generic IO
@@ -116,12 +118,61 @@ var (
 	DiscardingLogger = log.New(ioutil.Discard, "", 0)
 )
 
-// TailFile begins tailing the file. And returns a pointer to a Tail struct
+func Dir(dir string, callback func(file, line string) error) error {
+	config := Config{Follow: true, ReOpen: true, Poll: true, CompleteLines: true}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			err = Dir(entry.Name(), callback)
+			if err != nil {
+				return err
+			}
+		} else {
+			file, _ := entry.Info()
+			tailFile, err := File(filepath.Join(dir, file.Name()), config)
+			if err != nil {
+				return err
+			}
+			go func(fileName string, tailFil *Tail) {
+				// Print the text of each received line
+				for line := range tailFile.Lines {
+					err = callback(fileName, line.Text)
+					if err != nil {
+						fmt.Println("Unable to call " + err.Error())
+					}
+				}
+			}(file.Name(), tailFile)
+
+		}
+	}
+	return nil
+}
+
+func FileWithCallback(filename string, callback func(file, line string) error) error {
+	config := Config{Follow: true, ReOpen: true, Poll: true, CompleteLines: true}
+	tailFile, err := File(filename, config)
+	if err != nil {
+		return err
+	}
+	// Print the text of each received line
+	for line := range tailFile.Lines {
+		err = callback(filename, line.Text)
+		if err != nil {
+			fmt.Println("Unable to call " + err.Error())
+		}
+	}
+	return nil
+}
+
+// File begins tailing the file. And returns a pointer to a Tail struct
 // and an error. An output stream is made available via the Tail.Lines
 // channel (e.g. to be looped and printed). To handle errors during tailing,
 // after finishing reading from the Lines channel, invoke the `Wait` or `Err`
 // method on the returned *Tail.
-func TailFile(filename string, config Config) (*Tail, error) {
+func File(filename string, config Config) (*Tail, error) {
 	if config.ReOpen && !config.Follow {
 		util.Fatal("cannot set ReOpen without Follow.")
 	}

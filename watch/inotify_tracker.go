@@ -11,9 +11,9 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/dayvar14/tail/util"
+	"github.com/oarkflow/tail/util"
 
-    "github.com/fsnotify/fsnotify"
+	"github.com/fsnotify/fsnotify"
 )
 
 type InotifyTracker struct {
