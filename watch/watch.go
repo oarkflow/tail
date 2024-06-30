@@ -4,7 +4,9 @@
 
 package watch
 
-import "gopkg.in/tomb.v1"
+import (
+	"gopkg.in/tomb.v2"
+)
 
 // FileWatcher monitors file-level events.
 type FileWatcher interface {

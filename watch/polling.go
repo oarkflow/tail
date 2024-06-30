@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gopkg.in/tomb.v1"
+	"gopkg.in/tomb.v2"
 
 	"github.com/oarkflow/tail/util"
 )

@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/tomb.v1"
+	"gopkg.in/tomb.v2"
 
 	"github.com/oarkflow/tail/ratelimiter"
 	"github.com/oarkflow/tail/util"
@@ -115,11 +114,10 @@ var (
 	// DefaultLogger logs to os.Stderr and it is used when Config.Logger == nil
 	DefaultLogger = log.New(os.Stderr, "", log.LstdFlags)
 	// DiscardingLogger can be used to disable logging output
-	DiscardingLogger = log.New(ioutil.Discard, "", 0)
+	DiscardingLogger = log.New(io.Discard, "", 0)
 )
 
 func Dir(dir string, callback func(file, line string) error) error {
-	config := Config{Follow: true, ReOpen: true, Poll: true, CompleteLines: true}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -132,20 +130,9 @@ func Dir(dir string, callback func(file, line string) error) error {
 			}
 		} else {
 			file, _ := entry.Info()
-			tailFile, err := File(filepath.Join(dir, file.Name()), config)
-			if err != nil {
-				return err
-			}
-			go func(fileName string, tailFil *Tail) {
-				// Print the text of each received line
-				for line := range tailFile.Lines {
-					err = callback(fileName, line.Text)
-					if err != nil {
-						fmt.Println("Unable to call " + err.Error())
-					}
-				}
-			}(file.Name(), tailFile)
-
+			go func(dir, fileName string, callback func(file, line string) error) error {
+				return FileWithCallback(filepath.Join(dir, fileName), callback)
+			}(dir, file.Name(), callback)
 		}
 	}
 	return nil
@@ -320,7 +307,7 @@ func (tail *Tail) readLine() (string, error) {
 }
 
 func (tail *Tail) tailFileSync() {
-	defer tail.Done()
+	defer tail.Kill(nil)
 	defer tail.close()
 
 	if !tail.MustExist {
